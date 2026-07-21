@@ -5,10 +5,21 @@ app = Flask(__name__)
 app.secret_key = "ilm_ai_secret_key"
 
 
+# ============================================================
+# HOME PAGE
+# ============================================================
+
 @app.route("/")
 def home():
+
     return """
     <h1>Welcome to Ilm+AI</h1>
+
+    <p>Education in Service to Allah Through Humanity</p>
+
+    <hr>
+
+    <h2>Student Portal</h2>
 
     <a href="/register">Student Registration</a>
 
@@ -16,11 +27,17 @@ def home():
 
     <a href="/login">Student Login</a>
 
-    <br><br>
+    <hr>
+
+    <h2>Teacher Portal</h2>
 
     <a href="/teacher_login">Teacher Login</a>
     """
 
+
+# ============================================================
+# STUDENT REGISTRATION
+# ============================================================
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -36,15 +53,22 @@ def register():
         cursor = conn.cursor()
 
         try:
+
             cursor.execute("""
             INSERT INTO students
             (name, class_name, username, password)
             VALUES (?, ?, ?, ?)
-            """, (name, student_class, username, password))
+            """, (
+                name,
+                student_class,
+                username,
+                password
+            ))
 
             conn.commit()
 
         except sqlite3.IntegrityError:
+
             conn.close()
 
             return """
@@ -66,6 +90,8 @@ def register():
 
         <p>Your username is: {username}</p>
 
+        <br>
+
         <a href="/login">Proceed to Login</a>
         """
 
@@ -75,16 +101,24 @@ def register():
     <form method="POST">
 
         Name:<br>
-        <input type="text" name="name"><br><br>
+        <input type="text" name="name" required>
+
+        <br><br>
 
         Class:<br>
-        <input type="text" name="class"><br><br>
+        <input type="text" name="class" required>
+
+        <br><br>
 
         Username:<br>
-        <input type="text" name="username"><br><br>
+        <input type="text" name="username" required>
+
+        <br><br>
 
         Password:<br>
-        <input type="password" name="password"><br><br>
+        <input type="password" name="password" required>
+
+        <br><br>
 
         <input type="submit" value="Register">
 
@@ -95,6 +129,10 @@ def register():
     <a href="/">Back Home</a>
     """
 
+
+# ============================================================
+# STUDENT LOGIN
+# ============================================================
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -110,7 +148,10 @@ def login():
         cursor.execute("""
         SELECT * FROM students
         WHERE username=? AND password=?
-        """, (username, password))
+        """, (
+            username,
+            password
+        ))
 
         student = cursor.fetchone()
 
@@ -125,6 +166,7 @@ def login():
             return redirect("/dashboard")
 
         else:
+
             return """
             <h1>Login Failed</h1>
 
@@ -139,10 +181,14 @@ def login():
     <form method="POST">
 
         Username:<br>
-        <input type="text" name="username"><br><br>
+        <input type="text" name="username" required>
+
+        <br><br>
 
         Password:<br>
-        <input type="password" name="password"><br><br>
+        <input type="password" name="password" required>
+
+        <br><br>
 
         <input type="submit" value="Login">
 
@@ -154,10 +200,15 @@ def login():
     """
 
 
+# ============================================================
+# STUDENT DASHBOARD
+# ============================================================
+
 @app.route("/dashboard")
 def dashboard():
 
     if "username" not in session:
+
         return redirect("/login")
 
     return f"""
@@ -167,83 +218,156 @@ def dashboard():
 
     <p>Class: {session['class_name']}</p>
 
+    <hr>
+
     <ul>
-        <li><a href="/courses">My Courses</a></li>
-        <li><a href="/assignments">My Assignments</a></li>
-        <li><a href="/cbt">Take CBT Test</a></li>
-        <li><a href="/results">My Results</a></li>
+
+        <li>
+        <a href="/courses">
+        My Courses
+        </a>
+        </li>
+
+        <br>
+
+        <li>
+        <a href="/assignments">
+        My Assignments
+        </a>
+        </li>
+
+        <br>
+
+        <li>
+        <a href="/cbt">
+        Take CBT Test
+        </a>
+        </li>
+
+        <br>
+
+        <li>
+        <a href="/results">
+        My Results
+        </a>
+        </li>
+
     </ul>
 
-    <a href="/logout">Logout</a>
+    <hr>
+
+    <a href="/logout">
+    Logout
+    </a>
     """
 
+
+# ============================================================
+# STUDENT COURSES
+# ============================================================
 
 @app.route("/courses")
 def courses():
 
     if "username" not in session:
+
         return redirect("/login")
 
     return """
     <h1>My Courses</h1>
 
     <ul>
+
         <li>Mathematics</li>
+
         <li>English Language</li>
+
         <li>Physics</li>
+
         <li>Chemistry</li>
+
         <li>Programming with Python</li>
+
     </ul>
 
-    <a href="/dashboard">Back Dashboard</a>
+    <br>
+
+    <a href="/dashboard">
+    Back Dashboard
+    </a>
     """
 
+
+# ============================================================
+# STUDENT ASSIGNMENTS
+# ============================================================
 
 @app.route("/assignments")
 def assignments():
 
     if "username" not in session:
+
         return redirect("/login")
 
     return """
     <h1>My Assignments</h1>
 
     <ul>
+
         <li>Mathematics Assignment 1</li>
+
         <li>English Essay</li>
+
         <li>Python Programming Exercise</li>
+
     </ul>
 
-    <a href="/dashboard">Back Dashboard</a>
+    <br>
+
+    <a href="/dashboard">
+    Back Dashboard
+    </a>
     """
 
+
+# ============================================================
+# STUDENT CBT
+# ============================================================
 
 @app.route("/cbt", methods=["GET", "POST"])
 def cbt():
 
     if "username" not in session:
+
         return redirect("/login")
 
     if request.method == "POST":
 
         score = 0
 
-        if request.form["q1"] == "Abuja":
+        # Question 1
+        if request.form.get("q1") == "Abuja":
             score += 1
 
-        if request.form["q2"] == "4":
+        # Question 2
+        if request.form.get("q2") == "4":
             score += 1
 
-        if request.form["q3"] == "Python":
+        # Question 3
+        if request.form.get("q3") == "Python":
             score += 1
 
-        if request.form["q4"] == "Allah":
+        # Question 4
+        if request.form.get("q4") == "Allah":
             score += 1
 
-        if request.form["q5"] == "Robot":
+        # Question 5
+        if request.form.get("q5") == "Robot":
             score += 1
 
-        percentage = (score / 5) * 100
+        total = 5
+
+        percentage = (score / total) * 100
 
         conn = sqlite3.connect("ilm_ai.db")
         cursor = conn.cursor()
@@ -256,24 +380,37 @@ def cbt():
             session["username"],
             "General Knowledge",
             score,
-            5
+            total
         ))
 
         conn.commit()
+
         conn.close()
 
         return f"""
         <h1>CBT Result</h1>
 
-        <p>Your Score: {score}/5</p>
+        <p>Your Score: {score}/{total}</p>
 
         <p>Percentage: {percentage}%</p>
 
-        <a href="/results">View My Results</a>
+        <br>
+
+        <a href="/results">
+        View My Results
+        </a>
 
         <br><br>
 
-        <a href="/cbt">Take Test Again</a>
+        <a href="/cbt">
+        Take Test Again
+        </a>
+
+        <br><br>
+
+        <a href="/dashboard">
+        Back Dashboard
+        </a>
         """
 
     return """
@@ -282,40 +419,169 @@ def cbt():
     <form method="POST">
 
     <h3>1. What is the capital of Nigeria?</h3>
-    <input type="radio" name="q1" value="Lagos"> Lagos<br>
-    <input type="radio" name="q1" value="Abuja"> Abuja<br>
-    <input type="radio" name="q1" value="Kano"> Kano<br><br>
+
+    <input type="radio"
+    name="q1"
+    value="Lagos">
+
+    Lagos
+
+    <br>
+
+    <input type="radio"
+    name="q1"
+    value="Abuja">
+
+    Abuja
+
+    <br>
+
+    <input type="radio"
+    name="q1"
+    value="Kano">
+
+    Kano
+
+    <br><br>
+
 
     <h3>2. What is 2 + 2?</h3>
-    <input type="radio" name="q2" value="3"> 3<br>
-    <input type="radio" name="q2" value="4"> 4<br>
-    <input type="radio" name="q2" value="5"> 5<br><br>
 
-    <h3>3. Which programming language are we learning?</h3>
-    <input type="radio" name="q3" value="Java"> Java<br>
-    <input type="radio" name="q3" value="Python"> Python<br>
-    <input type="radio" name="q3" value="C++"> C++<br><br>
+    <input type="radio"
+    name="q2"
+    value="3">
 
-    <h3>4. Who should always come first according to Ilm+AI philosophy?</h3>
-    <input type="radio" name="q4" value="Technology"> Technology<br>
-    <input type="radio" name="q4" value="Money"> Money<br>
-    <input type="radio" name="q4" value="Allah"> Allah<br><br>
+    3
 
-    <h3>5. Which of these is used in Robotics?</h3>
-    <input type="radio" name="q5" value="Robot"> Robot<br>
-    <input type="radio" name="q5" value="Tree"> Tree<br>
-    <input type="radio" name="q5" value="River"> River<br><br>
+    <br>
 
-    <input type="submit" value="Submit CBT">
+    <input type="radio"
+    name="q2"
+    value="4">
+
+    4
+
+    <br>
+
+    <input type="radio"
+    name="q2"
+    value="5">
+
+    5
+
+    <br><br>
+
+
+    <h3>
+    3. Which programming language are we learning?
+    </h3>
+
+    <input type="radio"
+    name="q3"
+    value="Java">
+
+    Java
+
+    <br>
+
+    <input type="radio"
+    name="q3"
+    value="Python">
+
+    Python
+
+    <br>
+
+    <input type="radio"
+    name="q3"
+    value="C++">
+
+    C++
+
+    <br><br>
+
+
+    <h3>
+    4. Who should always come first
+    according to Ilm+AI philosophy?
+    </h3>
+
+    <input type="radio"
+    name="q4"
+    value="Technology">
+
+    Technology
+
+    <br>
+
+    <input type="radio"
+    name="q4"
+    value="Money">
+
+    Money
+
+    <br>
+
+    <input type="radio"
+    name="q4"
+    value="Allah">
+
+    Allah
+
+    <br><br>
+
+
+    <h3>
+    5. Which of these is used in Robotics?
+    </h3>
+
+    <input type="radio"
+    name="q5"
+    value="Robot">
+
+    Robot
+
+    <br>
+
+    <input type="radio"
+    name="q5"
+    value="Tree">
+
+    Tree
+
+    <br>
+
+    <input type="radio"
+    name="q5"
+    value="River">
+
+    River
+
+    <br><br>
+
+
+    <input type="submit"
+    value="Submit CBT">
 
     </form>
+
+    <br>
+
+    <a href="/dashboard">
+    Back Dashboard
+    </a>
     """
 
+
+# ============================================================
+# STUDENT RESULTS
+# ============================================================
 
 @app.route("/results")
 def results():
 
     if "username" not in session:
+
         return redirect("/login")
 
     conn = sqlite3.connect("ilm_ai.db")
@@ -325,24 +591,69 @@ def results():
     SELECT subject, score, total
     FROM results
     WHERE username=?
-    """, (session["username"],))
+    """, (
+        session["username"],
+    ))
 
     results_data = cursor.fetchall()
 
     conn.close()
 
-    html = "<h1>My Results</h1>"
+    html = """
+    <h1>My Results</h1>
+    """
 
     if results_data:
-        for result in results_data:
-            html += f"<p>{result[0]} : {result[1]}/{result[2]}</p>"
-    else:
-        html += "<p>No results available yet.</p>"
 
-    html += '<br><br><a href="/dashboard">Back Dashboard</a>'
+        html += """
+        <table border="1"
+        cellpadding="10">
+
+        <tr>
+            <th>Subject</th>
+            <th>Score</th>
+            <th>Total</th>
+        </tr>
+        """
+
+        for result in results_data:
+
+            html += f"""
+            <tr>
+
+                <td>{result[0]}</td>
+
+                <td>{result[1]}</td>
+
+                <td>{result[2]}</td>
+
+            </tr>
+            """
+
+        html += """
+        </table>
+        """
+
+    else:
+
+        html += """
+        <p>No results available yet.</p>
+        """
+
+    html += """
+    <br><br>
+
+    <a href="/dashboard">
+    Back Dashboard
+    </a>
+    """
 
     return html
 
+
+# ============================================================
+# STUDENT LOGOUT
+# ============================================================
 
 @app.route("/logout")
 def logout():
@@ -352,8 +663,22 @@ def logout():
     return """
     <h1>You have been logged out successfully.</h1>
 
-    <a href="/login">Login Again</a>
+    <a href="/login">
+    Student Login
+    </a>
+
+    <br><br>
+
+    <a href="/">
+    Back Home
+    </a>
     """
+
+
+# ============================================================
+# TEACHER LOGIN
+# ============================================================
+
 @app.route("/teacher_login", methods=["GET", "POST"])
 def teacher_login():
 
@@ -368,7 +693,10 @@ def teacher_login():
         cursor.execute("""
         SELECT * FROM teachers
         WHERE username=? AND password=?
-        """, (username, password))
+        """, (
+            username,
+            password
+        ))
 
         teacher = cursor.fetchone()
 
@@ -377,7 +705,9 @@ def teacher_login():
         if teacher:
 
             session["teacher_username"] = username
+
             session["teacher_name"] = teacher[1]
+
             session["teacher_subject"] = teacher[2]
 
             return redirect("/teacher_dashboard")
@@ -387,7 +717,9 @@ def teacher_login():
 
         <p>Invalid username or password.</p>
 
-        <a href="/teacher_login">Try Again</a>
+        <a href="/teacher_login">
+        Try Again
+        </a>
         """
 
     return """
@@ -396,19 +728,500 @@ def teacher_login():
     <form method="POST">
 
         Username:<br>
-        <input type="text" name="username"><br><br>
+
+        <input type="text"
+        name="username"
+        required>
+
+        <br><br>
 
         Password:<br>
-        <input type="password" name="password"><br><br>
 
-        <input type="submit" value="Login">
+        <input type="password"
+        name="password"
+        required>
+
+        <br><br>
+
+        <input type="submit"
+        value="Login">
 
     </form>
 
     <br>
 
-    <a href="/">Back Home</a>
+    <a href="/">
+    Back Home
+    </a>
     """
 
+
+# ============================================================
+# TEACHER DASHBOARD
+# ============================================================
+
+@app.route("/teacher_dashboard")
+def teacher_dashboard():
+
+    if "teacher_username" not in session:
+
+        return redirect("/teacher_login")
+
+    return f"""
+    <h1>Teacher Dashboard</h1>
+
+    <p>
+    Welcome {session["teacher_name"]}
+    </p>
+
+    <p>
+    Subject: {session["teacher_subject"]}
+    </p>
+
+    <hr>
+
+    <h2>Teacher Menu</h2>
+
+    <ul>
+
+        <li>
+        <a href="/view_students">
+        View Students
+        </a>
+        </li>
+
+        <br>
+
+        <li>
+        <a href="/view_all_results">
+        View All Student Results
+        </a>
+        </li>
+
+        <br>
+
+        <li>
+        <a href="/add_question">
+        Add CBT Question
+        </a>
+        </li>
+
+        <br>
+
+        <li>
+        <a href="/upload_assignment">
+        Upload Assignment
+        </a>
+        </li>
+
+    </ul>
+
+    <hr>
+
+    <a href="/teacher_logout">
+    Teacher Logout
+    </a>
+    """
+
+
+# ============================================================
+# VIEW ALL STUDENTS
+# ============================================================
+
+@app.route("/view_students")
+def view_students():
+
+    if "teacher_username" not in session:
+
+        return redirect("/teacher_login")
+
+    conn = sqlite3.connect("ilm_ai.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT name, class_name, username
+    FROM students
+    ORDER BY name
+    """)
+
+    students = cursor.fetchall()
+
+    conn.close()
+
+    html = """
+    <h1>Registered Students</h1>
+
+    <table border="1"
+    cellpadding="10">
+
+    <tr>
+
+        <th>Name</th>
+
+        <th>Class</th>
+
+        <th>Username</th>
+
+    </tr>
+    """
+
+    if students:
+
+        for student in students:
+
+            html += f"""
+            <tr>
+
+                <td>{student[0]}</td>
+
+                <td>{student[1]}</td>
+
+                <td>{student[2]}</td>
+
+            </tr>
+            """
+
+    else:
+
+        html += """
+        <tr>
+
+            <td colspan="3">
+            No students registered yet.
+            </td>
+
+        </tr>
+        """
+
+    html += """
+    </table>
+
+    <br><br>
+
+    <a href="/teacher_dashboard">
+    Back Teacher Dashboard
+    </a>
+    """
+
+    return html
+
+
+# ============================================================
+# VIEW ALL STUDENT RESULTS
+# ============================================================
+
+@app.route("/view_all_results")
+def view_all_results():
+
+    if "teacher_username" not in session:
+
+        return redirect("/teacher_login")
+
+    conn = sqlite3.connect("ilm_ai.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT
+        results.username,
+        students.name,
+        results.subject,
+        results.score,
+        results.total
+    FROM results
+
+    LEFT JOIN students
+    ON results.username = students.username
+
+    ORDER BY results.rowid DESC
+    """)
+
+    results_data = cursor.fetchall()
+
+    conn.close()
+
+    html = """
+    <h1>All Student Results</h1>
+
+    <table border="1"
+    cellpadding="10">
+
+    <tr>
+
+        <th>Username</th>
+
+        <th>Student Name</th>
+
+        <th>Subject</th>
+
+        <th>Score</th>
+
+        <th>Total</th>
+
+    </tr>
+    """
+
+    if results_data:
+
+        for result in results_data:
+
+            html += f"""
+            <tr>
+
+                <td>{result[0]}</td>
+
+                <td>{result[1] or "Unknown"}</td>
+
+                <td>{result[2]}</td>
+
+                <td>{result[3]}</td>
+
+                <td>{result[4]}</td>
+
+            </tr>
+            """
+
+    else:
+
+        html += """
+        <tr>
+
+            <td colspan="5">
+            No student results available yet.
+            </td>
+
+        </tr>
+        """
+
+    html += """
+    </table>
+
+    <br><br>
+
+    <a href="/teacher_dashboard">
+    Back Teacher Dashboard
+    </a>
+    """
+
+    return html
+
+
+# ============================================================
+# ADD CBT QUESTION
+# ============================================================
+
+@app.route("/add_question", methods=["GET", "POST"])
+def add_question():
+
+    if "teacher_username" not in session:
+
+        return redirect("/teacher_login")
+
+    if request.method == "POST":
+
+        subject = request.form["subject"]
+
+        question = request.form["question"]
+
+        option_a = request.form["option_a"]
+
+        option_b = request.form["option_b"]
+
+        option_c = request.form["option_c"]
+
+        correct_answer = request.form["correct_answer"]
+
+        conn = sqlite3.connect("ilm_ai.db")
+        cursor = conn.cursor()
+
+        cursor.execute("""
+        INSERT INTO questions
+        (
+            question,
+            option_a,
+            option_b,
+            option_c,
+            correct_answer,
+            subject
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+        """, (
+            question,
+            option_a,
+            option_b,
+            option_c,
+            correct_answer,
+            subject
+        ))
+
+        conn.commit()
+
+        conn.close()
+
+        return """
+        <h1>Question Saved Successfully!</h1>
+
+        <p>
+        The CBT question has been saved
+        to the Ilm+AI question bank.
+        </p>
+
+        <br>
+
+        <a href="/add_question">
+        Add Another Question
+        </a>
+
+        <br><br>
+
+        <a href="/teacher_dashboard">
+        Back Teacher Dashboard
+        </a>
+        """
+
+    return """
+    <h1>Add CBT Question</h1>
+
+    <form method="POST">
+
+    Subject:<br>
+
+    <input type="text"
+    name="subject"
+    required>
+
+    <br><br>
+
+
+    Question:<br>
+
+    <textarea
+    name="question"
+    rows="5"
+    cols="50"
+    required>
+    </textarea>
+
+    <br><br>
+
+
+    Option A:<br>
+
+    <input type="text"
+    name="option_a"
+    required>
+
+    <br><br>
+
+
+    Option B:<br>
+
+    <input type="text"
+    name="option_b"
+    required>
+
+    <br><br>
+
+
+    Option C:<br>
+
+    <input type="text"
+    name="option_c"
+    required>
+
+    <br><br>
+
+
+    Correct Answer:<br>
+
+    <input type="text"
+    name="correct_answer"
+    placeholder="Enter the exact correct answer"
+    required>
+
+    <br><br>
+
+
+    <input type="submit"
+    value="Save Question">
+
+    </form>
+
+    <br>
+
+    <a href="/teacher_dashboard">
+    Back Teacher Dashboard
+    </a>
+    """
+
+
+# ============================================================
+# UPLOAD ASSIGNMENT - PLACEHOLDER
+# ============================================================
+
+@app.route("/upload_assignment")
+def upload_assignment():
+
+    if "teacher_username" not in session:
+
+        return redirect("/teacher_login")
+
+    return """
+    <h1>Upload Assignment</h1>
+
+    <p>
+    The Assignment Management System
+    will be added in a future version.
+    </p>
+
+    <br>
+
+    <a href="/teacher_dashboard">
+    Back Teacher Dashboard
+    </a>
+    """
+
+
+# ============================================================
+# TEACHER LOGOUT
+# ============================================================
+
+@app.route("/teacher_logout")
+def teacher_logout():
+
+    session.pop("teacher_username", None)
+
+    session.pop("teacher_name", None)
+
+    session.pop("teacher_subject", None)
+
+    return """
+    <h1>Teacher Logout Successful</h1>
+
+    <p>
+    You have been logged out of the Teacher Portal.
+    </p>
+
+    <br>
+
+    <a href="/teacher_login">
+    Teacher Login
+    </a>
+
+    <br><br>
+
+    <a href="/">
+    Back Home
+    </a>
+    """
+
+
+# ============================================================
+# RUN APPLICATION
+# ============================================================
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+
+    app.run(
+        host="0.0.0.0",
+        port=5000
+    )
